@@ -1,336 +1,708 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, RotateCcw, User, BookOpen, Trophy } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alter Ego 法语卡片复习</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-const FrenchAlterEgo = () => {
-  const [currentCard, setCurrentCard] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [mode, setMode] = useState('word'); // 'word' or 'sentence'
-  const [mastered, setMastered] = useState(new Set());
-  const [alterEgo, setAlterEgo] = useState({
-    name: '',
-    level: 1,
-    points: 0
-  });
-  const [showSetup, setShowSetup] = useState(true);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-  const words = [
-    { french: "bonjour", chinese: "你好", type: "问候" },
-    { french: "merci", chinese: "谢谢", type: "礼貌用语" },
-    { french: "au revoir", chinese: "再见", type: "告别" },
-    { french: "oui", chinese: "是", type: "基础" },
-    { french: "non", chinese: "不", type: "基础" },
-    { french: "s'il vous plaît", chinese: "请", type: "礼貌用语" },
-    { french: "excusez-moi", chinese: "对不起/打扰一下", type: "礼貌用语" },
-    { french: "pardon", chinese: "抱歉", type: "礼貌用语" },
-    { french: "je", chinese: "我", type: "代词" },
-    { french: "tu", chinese: "你(非正式)", type: "代词" },
-    { french: "il", chinese: "他", type: "代词" },
-    { french: "elle", chinese: "她", type: "代词" },
-    { french: "nous", chinese: "我们", type: "代词" },
-    { french: "vous", chinese: "您/你们", type: "代词" },
-    { french: "ils", chinese: "他们", type: "代词" },
-    { french: "elles", chinese: "她们", type: "代词" },
-    { french: "être", chinese: "是/存在", type: "动词" },
-    { french: "avoir", chinese: "有", type: "动词" },
-    { french: "faire", chinese: "做", type: "动词" },
-    { french: "aller", chinese: "去", type: "动词" },
-    { french: "venir", chinese: "来", type: "动词" },
-    { french: "pouvoir", chinese: "能够", type: "动词" },
-    { french: "vouloir", chinese: "想要", type: "动词" },
-    { french: "devoir", chinese: "必须", type: "动词" },
-    { french: "savoir", chinese: "知道", type: "动词" },
-    { french: "prendre", chinese: "拿/取", type: "动词" },
-    { french: "manger", chinese: "吃", type: "动词" },
-    { french: "boire", chinese: "喝", type: "动词" },
-    { french: "parler", chinese: "说话", type: "动词" },
-    { french: "écouter", chinese: "听", type: "动词" },
-    { french: "regarder", chinese: "看", type: "动词" },
-    { french: "lire", chinese: "阅读", type: "动词" },
-    { french: "écrire", chinese: "写", type: "动词" },
-    { french: "aimer", chinese: "喜欢", type: "动词" },
-    { french: "adorer", chinese: "热爱", type: "动词" },
-    { french: "détester", chinese: "讨厌", type: "动词" },
-    { french: "maison", chinese: "房子", type: "名词" },
-    { french: "chat", chinese: "猫", type: "名词" },
-    { french: "chien", chinese: "狗", type: "名词" },
-    { french: "livre", chinese: "书", type: "名词" },
-    { french: "table", chinese: "桌子", type: "名词" },
-    { french: "chaise", chinese: "椅子", type: "名词" },
-    { french: "porte", chinese: "门", type: "名词" },
-    { french: "fenêtre", chinese: "窗户", type: "名词" },
-    { french: "eau", chinese: "水", type: "名词" },
-    { french: "pain", chinese: "面包", type: "名词" },
-    { french: "café", chinese: "咖啡", type: "名词" },
-    { french: "thé", chinese: "茶", type: "名词" },
-    { french: "lait", chinese: "牛奶", type: "名词" },
-    { french: "vin", chinese: "酒", type: "名词" },
-    { french: "fromage", chinese: "奶酪", type: "名词" },
-    { french: "pomme", chinese: "苹果", type: "名词" },
-    { french: "orange", chinese: "橙子", type: "名词" },
-    { french: "banane", chinese: "香蕉", type: "名词" },
-    { french: "tomate", chinese: "西红柿", type: "名词" },
-    { french: "salade", chinese: "沙拉", type: "名词" },
-    { french: "viande", chinese: "肉", type: "名词" },
-    { french: "poisson", chinese: "鱼", type: "名词" },
-    { french: "poulet", chinese: "鸡肉", type: "名词" },
-    { french: "riz", chinese: "米饭", type: "名词" },
-    { french: "pâtes", chinese: "意大利面", type: "名词" },
-    { french: "soupe", chinese: "汤", type: "名词" },
-    { french: "dessert", chinese: "甜点", type: "名词" },
-    { french: "gâteau", chinese: "蛋糕", type: "名词" },
-    { french: "glace", chinese: "冰淇淋", type: "名词" },
-    { french: "chocolat", chinese: "巧克力", type: "名词" },
-    { french: "beau", chinese: "美丽的(阳性)", type: "形容词" },
-    { french: "belle", chinese: "美丽的(阴性)", type: "形容词" },
-    { french: "grand", chinese: "大的", type: "形容词" },
-    { french: "petit", chinese: "小的", type: "形容词" },
-    { french: "bon", chinese: "好的", type: "形容词" },
-    { french: "mauvais", chinese: "坏的", type: "形容词" },
-    { french: "nouveau", chinese: "新的", type: "形容词" },
-    { french: "vieux", chinese: "老的", type: "形容词" },
-    { french: "jeune", chinese: "年轻的", type: "形容词" },
-    { french: "content", chinese: "开心的", type: "形容词" },
-    { french: "triste", chinese: "悲伤的", type: "形容词" },
-    { french: "fatigué", chinese: "疲倦的", type: "形容词" },
-    { french: "chaud", chinese: "热的", type: "形容词" },
-    { french: "froid", chinese: "冷的", type: "形容词" },
-    { french: "rouge", chinese: "红色", type: "颜色" },
-    { french: "bleu", chinese: "蓝色", type: "颜色" },
-    { french: "vert", chinese: "绿色", type: "颜色" },
-    { french: "jaune", chinese: "黄色", type: "颜色" },
-    { french: "noir", chinese: "黑色", type: "颜色" },
-    { french: "blanc", chinese: "白色", type: "颜色" },
-    { french: "rose", chinese: "粉色", type: "颜色" },
-    { french: "orange", chinese: "橙色", type: "颜色" },
-    { french: "violet", chinese: "紫色", type: "颜色" },
-    { french: "un", chinese: "一(阳性)", type: "数字" },
-    { french: "deux", chinese: "二", type: "数字" },
-    { french: "trois", chinese: "三", type: "数字" },
-    { french: "quatre", chinese: "四", type: "数字" },
-    { french: "cinq", chinese: "五", type: "数字" },
-    { french: "six", chinese: "六", type: "数字" },
-    { french: "sept", chinese: "七", type: "数字" },
-    { french: "huit", chinese: "八", type: "数字" },
-    { french: "neuf", chinese: "九", type: "数字" },
-    { french: "dix", chinese: "十", type: "数字" }
-  ];
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
 
-  const sentences = [
-    { french: "Je m'appelle Marie.", chinese: "我叫玛丽。" },
-    { french: "Comment allez-vous?", chinese: "您好吗？" },
-    { french: "Ça va bien, merci.", chinese: "我很好，谢谢。" },
-    { french: "Je suis étudiant.", chinese: "我是学生。" },
-    { french: "J'habite à Paris.", chinese: "我住在巴黎。" },
-    { french: "Je parle français.", chinese: "我说法语。" },
-    { french: "Quelle heure est-il?", chinese: "几点了？" },
-    { french: "Il est trois heures.", chinese: "三点了。" },
-    { french: "J'aime le chocolat.", chinese: "我喜欢巧克力。" },
-    { french: "Je voudrais un café.", chinese: "我想要一杯咖啡。" }
-  ];
+        /* 设置页面 */
+        .setup-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
 
-  const currentData = mode === 'word' ? words : sentences;
+        .setup-card {
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
 
-  const handleNext = () => {
-    setIsFlipped(false);
-    setCurrentCard((prev) => (prev + 1) % currentData.length);
-  };
+        .setup-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
 
-  const handlePrev = () => {
-    setIsFlipped(false);
-    setCurrentCard((prev) => (prev - 1 + currentData.length) % currentData.length);
-  };
+        .setup-card h1 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            color: #333;
+        }
 
-  const handleMaster = () => {
-    const key = `${mode}-${currentCard}`;
-    const newMastered = new Set(mastered);
-    if (mastered.has(key)) {
-      newMastered.delete(key);
-      setAlterEgo(prev => ({ ...prev, points: Math.max(0, prev.points - 10) }));
-    } else {
-      newMastered.add(key);
-      const newPoints = alterEgo.points + 10;
-      setAlterEgo(prev => ({ 
-        ...prev, 
-        points: newPoints,
-        level: Math.floor(newPoints / 100) + 1
-      }));
-    }
-    setMastered(newMastered);
-  };
+        .setup-card p {
+            color: #666;
+            margin-bottom: 32px;
+        }
 
-  const isMastered = mastered.has(`${mode}-${currentCard}`);
-  const progress = (mastered.size / (words.length + sentences.length)) * 100;
+        .setup-input {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            border: 2px solid #c084fc;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            outline: none;
+            transition: all 0.3s;
+        }
 
-  if (showSetup) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-red-500 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full">
-          <div className="text-center mb-6">
-            <User className="w-20 h-20 mx-auto mb-4 text-purple-600" />
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">创建你的法语分身</h1>
-            <p className="text-gray-600">给你的学习伙伴起个名字吧！</p>
-          </div>
-          <input
-            type="text"
-            placeholder="输入你的法语名字..."
-            className="w-full px-4 py-3 border-2 border-purple-300 rounded-xl focus:border-purple-500 focus:outline-none text-lg mb-6"
-            value={alterEgo.name}
-            onChange={(e) => setAlterEgo(prev => ({ ...prev, name: e.target.value }))}
-            onKeyPress={(e) => e.key === 'Enter' && alterEgo.name && setShowSetup(false)}
-          />
-          <button
-            onClick={() => alterEgo.name && setShowSetup(false)}
-            disabled={!alterEgo.name}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-semibold text-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            开始学习之旅
-          </button>
+        .setup-input:focus {
+            border-color: #a855f7;
+        }
+
+        .setup-button {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #9333ea, #ec4899);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .setup-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(147, 51, 234, 0.4);
+        }
+
+        .setup-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 主应用 */
+        .main-app {
+            display: none;
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #9333ea, #ec4899);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .user-details h2 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .user-details p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .trophy-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #34d399, #3b82f6);
+            transition: width 0.5s;
+        }
+
+        /* 模式切换 */
+        .mode-switch {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .mode-button {
+            flex: 1;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.5);
+            color: white;
+        }
+
+        .mode-button.active {
+            background: white;
+            color: #9333ea;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        /* 卡片容器 */
+        .card-container {
+            perspective: 1000px;
+            margin-bottom: 24px;
+            min-height: 400px;
+        }
+
+        .card {
+            position: relative;
+            width: 100%;
+            min-height: 400px;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            min-height: 400px;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .card-front {
+            background: white;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #9333ea, #ec4899);
+            transform: rotateY(180deg);
+        }
+
+        .word-type {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #ede9fe;
+            color: #9333ea;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+
+        .card-text {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .card-front .card-text {
+            color: #1f2937;
+        }
+
+        .card-back .card-text {
+            color: white;
+        }
+
+        .card-hint {
+            font-size: 18px;
+            color: #9ca3af;
+        }
+
+        .card-back .card-hint {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .mastered-badge {
+            margin-top: 16px;
+            padding: 8px 16px;
+            background: #d1fae5;
+            color: #059669;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* 控制按钮 */
+        .controls {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .control-button {
+            width: 56px;
+            height: 56px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .master-button {
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            background: white;
+            color: #1f2937;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .master-button.mastered {
+            background: #10b981;
+            color: white;
+        }
+
+        .master-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .card-counter {
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 设置页面 -->
+    <div id="setupScreen" class="setup-screen">
+        <div class="setup-card">
+            <div class="setup-icon">👤</div>
+            <h1>创建你的法语分身</h1>
+            <p>给你的学习伙伴起个名字吧！</p>
+            <input type="text" id="nameInput" class="setup-input" placeholder="输入你的法语名字..." />
+            <button id="startButton" class="setup-button" disabled>开始学习之旅</button>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* 顶部状态栏 */}
-        <div className="bg-white/95 backdrop-blur rounded-2xl shadow-lg p-4 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                {alterEgo.name[0]?.toUpperCase()}
-              </div>
-              <div>
-                <h2 className="font-bold text-gray-800">{alterEgo.name}</h2>
-                <p className="text-sm text-gray-600">等级 {alterEgo.level} · {alterEgo.points} 分</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-yellow-500" />
-              <span className="font-semibold text-gray-700">{mastered.size}/{words.length + sentences.length}</span>
-            </div>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-green-400 to-blue-500 transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-
-        {/* 模式切换 */}
-        <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => { setMode('word'); setCurrentCard(0); setIsFlipped(false); }}
-            className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
-              mode === 'word' 
-                ? 'bg-white text-purple-600 shadow-lg' 
-                : 'bg-white/50 text-white'
-            }`}
-          >
-            <BookOpen className="w-5 h-5 inline mr-2" />
-            单词卡片
-          </button>
-          <button
-            onClick={() => { setMode('sentence'); setCurrentCard(0); setIsFlipped(false); }}
-            className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
-              mode === 'sentence' 
-                ? 'bg-white text-purple-600 shadow-lg' 
-                : 'bg-white/50 text-white'
-            }`}
-          >
-            句子练习
-          </button>
-        </div>
-
-        {/* 卡片 */}
-        <div className="relative mb-6" style={{ perspective: '1000px' }}>
-          <div
-            onClick={() => setIsFlipped(!isFlipped)}
-            className="cursor-pointer transition-all duration-500 relative"
-            style={{
-              transformStyle: 'preserve-3d',
-              transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0)',
-              minHeight: '400px'
-            }}
-          >
-            {/* 正面 */}
-            <div
-              className="absolute w-full bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center justify-center"
-              style={{
-                backfaceVisibility: 'hidden',
-                minHeight: '400px'
-              }}
-            >
-              {mode === 'word' && (
-                <div className="inline-block px-4 py-2 bg-purple-100 text-purple-600 rounded-full text-sm font-semibold mb-4">
-                  {currentData[currentCard].type}
-                </div>
-              )}
-              <h3 className="text-5xl font-bold text-gray-800 mb-4">
-                {currentData[currentCard].french}
-              </h3>
-              <p className="text-gray-400 text-lg">点击翻转查看中文</p>
-              {isMastered && (
-                <div className="mt-4 px-4 py-2 bg-green-100 text-green-600 rounded-full text-sm font-semibold">
-                  ✓ 已掌握
-                </div>
-              )}
-            </div>
-
-            {/* 背面 */}
-            <div
-              className="absolute w-full bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl shadow-2xl p-8 flex flex-col items-center justify-center"
-              style={{
-                backfaceVisibility: 'hidden',
-                transform: 'rotateY(180deg)',
-                minHeight: '400px'
-              }}
-            >
-              <h3 className="text-5xl font-bold text-white mb-4">
-                {currentData[currentCard].chinese}
-              </h3>
-              <p className="text-purple-200 text-lg">点击返回法语</p>
-            </div>
-          </div>
-        </div>
-
-        {/* 控制按钮 */}
-        <div className="flex gap-4 items-center justify-center mb-4">
-          <button
-            onClick={handlePrev}
-            className="bg-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all"
-          >
-            <ChevronLeft className="w-6 h-6 text-gray-700" />
-          </button>
-          
-          <button
-            onClick={handleMaster}
-            className={`px-8 py-4 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all ${
-              isMastered 
-                ? 'bg-green-500 text-white' 
-                : 'bg-white text-gray-700'
-            }`}
-          >
-            {isMastered ? '✓ 已掌握' : '标记为已掌握'}
-          </button>
-
-          <button
-            onClick={handleNext}
-            className="bg-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all"
-          >
-            <ChevronRight className="w-6 h-6 text-gray-700" />
-          </button>
-        </div>
-
-        <div className="text-center text-white">
-          <p className="text-lg font-semibold">
-            {currentCard + 1} / {currentData.length}
-          </p>
-        </div>
-      </div>
     </div>
-  );
-};
 
-export default FrenchAlterEgo;
+    <!-- 主应用 -->
+    <div id="mainApp" class="main-app">
+        <div class="container">
+            <!-- 状态栏 -->
+            <div class="status-bar">
+                <div class="status-header">
+                    <div class="user-info">
+                        <div class="avatar" id="avatar"></div>
+                        <div class="user-details">
+                            <h2 id="userName"></h2>
+                            <p>等级 <span id="userLevel">1</span> · <span id="userPoints">0</span> 分</p>
+                        </div>
+                    </div>
+                    <div class="trophy-info">
+                        <span>🏆</span>
+                        <span id="masteredCount">0</span>/<span id="totalCount">110</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- 模式切换 -->
+            <div class="mode-switch">
+                <button class="mode-button active" id="wordMode">📚 单词卡片</button>
+                <button class="mode-button" id="sentenceMode">💬 句子练习</button>
+            </div>
+
+            <!-- 卡片 -->
+            <div class="card-container">
+                <div class="card" id="card">
+                    <div class="card-face card-front">
+                        <div class="word-type" id="wordType"></div>
+                        <div class="card-text" id="frontText"></div>
+                        <div class="card-hint">点击翻转查看中文</div>
+                        <div class="mastered-badge hidden" id="masteredBadge">✓ 已掌握</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="card-text" id="backText"></div>
+                        <div class="card-hint">点击返回法语</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 控制按钮 -->
+            <div class="controls">
+                <button class="control-button" id="prevButton">←</button>
+                <button class="master-button" id="masterButton">标记为已掌握</button>
+                <button class="control-button" id="nextButton">→</button>
+            </div>
+
+            <div class="card-counter">
+                <span id="currentIndex">1</span> / <span id="totalCards">100</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 数据
+        const words = [
+            { french: "bonjour", chinese: "你好", type: "问候" },
+            { french: "merci", chinese: "谢谢", type: "礼貌用语" },
+            { french: "au revoir", chinese: "再见", type: "告别" },
+            { french: "oui", chinese: "是", type: "基础" },
+            { french: "non", chinese: "不", type: "基础" },
+            { french: "s'il vous plaît", chinese: "请", type: "礼貌用语" },
+            { french: "excusez-moi", chinese: "对不起/打扰一下", type: "礼貌用语" },
+            { french: "pardon", chinese: "抱歉", type: "礼貌用语" },
+            { french: "je", chinese: "我", type: "代词" },
+            { french: "tu", chinese: "你(非正式)", type: "代词" },
+            { french: "il", chinese: "他", type: "代词" },
+            { french: "elle", chinese: "她", type: "代词" },
+            { french: "nous", chinese: "我们", type: "代词" },
+            { french: "vous", chinese: "您/你们", type: "代词" },
+            { french: "ils", chinese: "他们", type: "代词" },
+            { french: "elles", chinese: "她们", type: "代词" },
+            { french: "être", chinese: "是/存在", type: "动词" },
+            { french: "avoir", chinese: "有", type: "动词" },
+            { french: "faire", chinese: "做", type: "动词" },
+            { french: "aller", chinese: "去", type: "动词" },
+            { french: "venir", chinese: "来", type: "动词" },
+            { french: "pouvoir", chinese: "能够", type: "动词" },
+            { french: "vouloir", chinese: "想要", type: "动词" },
+            { french: "devoir", chinese: "必须", type: "动词" },
+            { french: "savoir", chinese: "知道", type: "动词" },
+            { french: "prendre", chinese: "拿/取", type: "动词" },
+            { french: "manger", chinese: "吃", type: "动词" },
+            { french: "boire", chinese: "喝", type: "动词" },
+            { french: "parler", chinese: "说话", type: "动词" },
+            { french: "écouter", chinese: "听", type: "动词" },
+            { french: "regarder", chinese: "看", type: "动词" },
+            { french: "lire", chinese: "阅读", type: "动词" },
+            { french: "écrire", chinese: "写", type: "动词" },
+            { french: "aimer", chinese: "喜欢", type: "动词" },
+            { french: "adorer", chinese: "热爱", type: "动词" },
+            { french: "détester", chinese: "讨厌", type: "动词" },
+            { french: "maison", chinese: "房子", type: "名词" },
+            { french: "chat", chinese: "猫", type: "名词" },
+            { french: "chien", chinese: "狗", type: "名词" },
+            { french: "livre", chinese: "书", type: "名词" },
+            { french: "table", chinese: "桌子", type: "名词" },
+            { french: "chaise", chinese: "椅子", type: "名词" },
+            { french: "porte", chinese: "门", type: "名词" },
+            { french: "fenêtre", chinese: "窗户", type: "名词" },
+            { french: "eau", chinese: "水", type: "名词" },
+            { french: "pain", chinese: "面包", type: "名词" },
+            { french: "café", chinese: "咖啡", type: "名词" },
+            { french: "thé", chinese: "茶", type: "名词" },
+            { french: "lait", chinese: "牛奶", type: "名词" },
+            { french: "vin", chinese: "酒", type: "名词" },
+            { french: "fromage", chinese: "奶酪", type: "名词" },
+            { french: "pomme", chinese: "苹果", type: "名词" },
+            { french: "orange", chinese: "橙子", type: "名词" },
+            { french: "banane", chinese: "香蕉", type: "名词" },
+            { french: "tomate", chinese: "西红柿", type: "名词" },
+            { french: "salade", chinese: "沙拉", type: "名词" },
+            { french: "viande", chinese: "肉", type: "名词" },
+            { french: "poisson", chinese: "鱼", type: "名词" },
+            { french: "poulet", chinese: "鸡肉", type: "名词" },
+            { french: "riz", chinese: "米饭", type: "名词" },
+            { french: "pâtes", chinese: "意大利面", type: "名词" },
+            { french: "soupe", chinese: "汤", type: "名词" },
+            { french: "dessert", chinese: "甜点", type: "名词" },
+            { french: "gâteau", chinese: "蛋糕", type: "名词" },
+            { french: "glace", chinese: "冰淇淋", type: "名词" },
+            { french: "chocolat", chinese: "巧克力", type: "名词" },
+            { french: "beau", chinese: "美丽的(阳性)", type: "形容词" },
+            { french: "belle", chinese: "美丽的(阴性)", type: "形容词" },
+            { french: "grand", chinese: "大的", type: "形容词" },
+            { french: "petit", chinese: "小的", type: "形容词" },
+            { french: "bon", chinese: "好的", type: "形容词" },
+            { french: "mauvais", chinese: "坏的", type: "形容词" },
+            { french: "nouveau", chinese: "新的", type: "形容词" },
+            { french: "vieux", chinese: "老的", type: "形容词" },
+            { french: "jeune", chinese: "年轻的", type: "形容词" },
+            { french: "content", chinese: "开心的", type: "形容词" },
+            { french: "triste", chinese: "悲伤的", type: "形容词" },
+            { french: "fatigué", chinese: "疲倦的", type: "形容词" },
+            { french: "chaud", chinese: "热的", type: "形容词" },
+            { french: "froid", chinese: "冷的", type: "形容词" },
+            { french: "rouge", chinese: "红色", type: "颜色" },
+            { french: "bleu", chinese: "蓝色", type: "颜色" },
+            { french: "vert", chinese: "绿色", type: "颜色" },
+            { french: "jaune", chinese: "黄色", type: "颜色" },
+            { french: "noir", chinese: "黑色", type: "颜色" },
+            { french: "blanc", chinese: "白色", type: "颜色" },
+            { french: "rose", chinese: "粉色", type: "颜色" },
+            { french: "orange", chinese: "橙色", type: "颜色" },
+            { french: "violet", chinese: "紫色", type: "颜色" },
+            { french: "un", chinese: "一(阳性)", type: "数字" },
+            { french: "deux", chinese: "二", type: "数字" },
+            { french: "trois", chinese: "三", type: "数字" },
+            { french: "quatre", chinese: "四", type: "数字" },
+            { french: "cinq", chinese: "五", type: "数字" },
+            { french: "six", chinese: "六", type: "数字" },
+            { french: "sept", chinese: "七", type: "数字" },
+            { french: "huit", chinese: "八", type: "数字" },
+            { french: "neuf", chinese: "九", type: "数字" },
+            { french: "dix", chinese: "十", type: "数字" }
+        ];
+
+        const sentences = [
+            { french: "Je m'appelle Marie.", chinese: "我叫玛丽。" },
+            { french: "Comment allez-vous?", chinese: "您好吗？" },
+            { french: "Ça va bien, merci.", chinese: "我很好，谢谢。" },
+            { french: "Je suis étudiant.", chinese: "我是学生。" },
+            { french: "J'habite à Paris.", chinese: "我住在巴黎。" },
+            { french: "Je parle français.", chinese: "我说法语。" },
+            { french: "Quelle heure est-il?", chinese: "几点了？" },
+            { french: "Il est trois heures.", chinese: "三点了。" },
+            { french: "J'aime le chocolat.", chinese: "我喜欢巧克力。" },
+            { french: "Je voudrais un café.", chinese: "我想要一杯咖啡。" }
+        ];
+
+        // 状态
+        let currentMode = 'word';
+        let currentIndex = 0;
+        let mastered = new Set();
+        let alterEgo = {
+            name: '',
+            level: 1,
+            points: 0
+        };
+
+        // DOM 元素
+        const setupScreen = document.getElementById('setupScreen');
+        const mainApp = document.getElementById('mainApp');
+        const nameInput = document.getElementById('nameInput');
+        const startButton = document.getElementById('startButton');
+        const avatar = document.getElementById('avatar');
+        const userName = document.getElementById('userName');
+        const userLevel = document.getElementById('userLevel');
+        const userPoints = document.getElementById('userPoints');
+        const masteredCount = document.getElementById('masteredCount');
+        const progressFill = document.getElementById('progressFill');
+        const wordMode = document.getElementById('wordMode');
+        const sentenceMode = document.getElementById('sentenceMode');
+        const card = document.getElementById('card');
+        const wordType = document.getElementById('wordType');
+        const frontText = document.getElementById('frontText');
+        const backText = document.getElementById('backText');
+        const masteredBadge = document.getElementById('masteredBadge');
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const masterButton = document.getElementById('masterButton');
+        const currentIndexEl = document.getElementById('currentIndex');
+        const totalCards = document.getElementById('totalCards');
+
+        // 设置页面逻辑
+        nameInput.addEventListener('input', (e) => {
+            startButton.disabled = !e.target.value.trim();
+        });
+
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && nameInput.value.trim()) {
+                startApp();
+            }
+        });
+
+        startButton.addEventListener('click', startApp);
+
+        function startApp() {
+            alterEgo.name = nameInput.value.trim();
+            avatar.textContent = alterEgo.name[0].toUpperCase();
+            userName.textContent = alterEgo.name;
+            setupScreen.classList.add('hidden');
+            mainApp.style.display = 'block';
+            updateCard();
+        }
+
+        // 模式切换
+        wordMode.addEventListener('click', () => {
+            if (currentMode !== 'word') {
+                currentMode = 'word';
+                currentIndex = 0;
+                wordMode.classList.add('active');
+                sentenceMode.classList.remove('active');
+                card.classList.remove('flipped');
+                updateCard();
+            }
+        });
+
+        sentenceMode.addEventListener('click', () => {
+            if (currentMode !== 'sentence') {
+                currentMode = 'sentence';
+                currentIndex = 0;
+                sentenceMode.classList.add('active');
+                wordMode.classList.remove('active');
+                card.classList.remove('flipped');
+                updateCard();
+            }
+        });
+
+        // 卡片翻转
+        card.addEventListener('click', () => {
+            card.classList.toggle('flipped');
+        });
+
+        // 导航按钮
+        prevButton.addEventListener('click', () => {
+            const data = currentMode === 'word' ? words : sentences;
+            currentIndex = (currentIndex - 1 + data.length) % data.length;
+            card.classList.remove('flipped');
+            updateCard();
+        });
+
+        nextButton.addEventListener('click', () => {
+            const data = currentMode === 'word' ? words : sentences;
+            currentIndex = (currentIndex + 1) % data.length;
+            card.classList.remove('flipped');
+            updateCard();
+        });
+
+        // 掌握按钮
+        masterButton.addEventListener('click', () => {
+            const key = `${currentMode}-${currentIndex}`;
+            if (mastered.has(key)) {
+                mastered.delete(key);
+                alterEgo.points = Math.max(0, alterEgo.points - 10);
+            } else {
+                mastered.add(key);
+                alterEgo.points += 10;
+            }
+            alterEgo.level = Math.floor(alterEgo.points / 100) + 1;
+            updateUI();
+        });
+
+        // 更新卡片
+        function updateCard() {
+            const data = currentMode === 'word' ? words : sentences;
+            const item = data[currentIndex];
+            
+            frontText.textContent = item.french;
+            backText.textContent = item.chinese;
+            
+            if (currentMode === 'word') {
+                wordType.textContent = item.type;
+                wordType.style.display = 'inline-block';
+            } else {
+                wordType.style.display = 'none';
+            }
+
+            const key = `${currentMode}-${currentIndex}`;
+            const isMastered = mastered.has(key);
+            
+            if (isMastered) {
+                masteredBadge.classList.remove('hidden');
+                masterButton.classList.add('mastered');
+                masterButton.textContent = '✓ 已掌握';
+            } else {
+                masteredBadge.classList.add('hidden');
+                masterButton.classList.remove('mastered');
+                masterButton.textContent = '标记为已掌握';
+            }
+
+            currentIndexEl.textContent = currentIndex + 1;
+            totalCards.textContent = data.length;
+        }
+
+        // 更新UI
+        function updateUI() {
+            userLevel.textContent = alterEgo.level;
+            userPoints.textContent = alterEgo.points;
+            masteredCount.textContent = mastered.size;
+            
+            const totalItems = words.length + sentences.length;
+            const progress = (mastered.size / totalItems) * 100;
+            progressFill.style.width = progress + '%';
+            
+            updateCard();
+        }
+
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            if (setupScreen.classList.contains('hidden')) {
+                if (e.key === 'ArrowLeft') prevButton.click();
+                if (e.key === 'ArrowRight') nextButton.click();
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    card.classList.toggle('flipped');
+                }
+                if (e.key === 'Enter') masterButton.click();
+            }
+        });
+    </script>
+</body>
+</html>
